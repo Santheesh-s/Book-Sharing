@@ -33,7 +33,7 @@
                     <div class="card text-center shadow-sm">
                         <div class="card-body">
                             <h6 class="card-title">Books Listed</h6>
-                            <p class="display-6">7</p>
+                            <p class="display-6" id="booksListedCount">0</p>
                         </div>
                     </div>
                 </div>
@@ -41,7 +41,7 @@
                     <div class="card text-center shadow-sm">
                         <div class="card-body">
                             <h6 class="card-title">Books Borrowed</h6>
-                            <p class="display-6">3</p>
+                            <p class="display-6" id="booksBorrowedCount">0</p>
                         </div>
                     </div>
                 </div>
@@ -49,7 +49,7 @@
                     <div class="card text-center shadow-sm">
                         <div class="card-body">
                             <h6 class="card-title">Books Sold</h6>
-                            <p class="display-6">1</p>
+                            <p class="display-6" id="booksSoldCount">0</p>
                         </div>
                     </div>
                 </div>
@@ -57,7 +57,7 @@
                     <div class="card text-center shadow-sm">
                         <div class="card-body">
                             <h6 class="card-title">Reviews Given</h6>
-                            <p class="display-6">5</p>
+                            <p class="display-6" id="reviewsGivenCount">0</p>
                         </div>
                     </div>
                 </div>
@@ -127,6 +127,25 @@
                     welcomeUser.innerHTML = `<h2>Hello, ${data.username}!</h2>`;
                 } else {
                     window.location.href = '/login.html';
+                }
+            });
+    </script>
+    <script>
+        fetch('/api/user')
+            .then(res => res.json())
+            .then(userData => {
+                const userInfo = document.getElementById('userInfo');
+                const welcomeUser = document.getElementById('welcomeUser');
+                if (userData.loggedIn) {
+                    // Fetch stats for the logged-in user
+                    fetch('/api/user-stats')
+                        .then(res => res.json())
+                        .then(stats => {
+                            document.getElementById('booksListedCount').textContent = stats.booksListed;
+                            document.getElementById('booksBorrowedCount').textContent = stats.booksBorrowed;
+                            document.getElementById('booksSoldCount').textContent = stats.booksSold;
+                            document.getElementById('reviewsGivenCount').textContent = stats.reviewsGiven;
+                        });
                 }
             });
     </script>

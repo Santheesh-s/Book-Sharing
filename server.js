@@ -212,7 +212,7 @@ app.post('/return/:bookId', requireLogin, async (req, res) => {
     res.send('Book returned.');
 });
 
-// Add this route to handle making a book available again
+// Add this route to handle making a book available again (delete borrow requests and set available)
 app.post('/books/:bookId/available', requireLogin, async (req, res) => {
     const bookId = req.params.bookId;
     const book = await Book.findById(bookId);
@@ -221,6 +221,9 @@ app.post('/books/:bookId/available', requireLogin, async (req, res) => {
     if (String(book.ownerId) !== String(req.session.userId)) {
         return res.status(403).send('Unauthorized');
     }
+    // Delete all borrow requests for this book
+    await BorrowRequest.deleteMany({ bookId: bookId });
+    // Set book as available
     book.available = true;
     await book.save();
     res.redirect('/books.html');
@@ -232,6 +235,19 @@ app.get('/api/user', async (req, res) => {
     const user = await User.findById(req.session.userId);
     if (!user) return res.json({ loggedIn: false });
     res.json({ loggedIn: true, username: user.username, userId: String(user._id) });
+});
+
+// API for user dashboard stats
+app.get('/api/user-stats', async (req, res) => {
+    if (!req.session.userId) return res.json({ booksListed: 0, booksBorrowed: 0, booksSold: 0, reviewsGiven: 0 });
+    const userId = req.session.userId;
+    const [booksListed, booksBorrowed, booksSold, reviewsGiven] = await Promise.all([
+        Book.countDocuments({ ownerId: userId }),
+        BorrowRequest.countDocuments({ borrowerId: userId }),
+        Book.countDocuments({ ownerId: userId, forSale: true, available: false }),
+        Review.countDocuments({ userId: userId })
+    ]);
+    res.json({ booksListed, booksBorrowed, booksSold, reviewsGiven });
 });
 
 app.listen(PORT, () => {
