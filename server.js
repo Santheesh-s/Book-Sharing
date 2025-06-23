@@ -1,12 +1,13 @@
 const express = require('express');
 const session = require('express-session');
 const path = require('path');
+require('dotenv').config();
 const mongoose = require('mongoose');
 const app = express();
 const PORT = 8080;
 
 // Connect to MongoDB
-mongoose.connect('mongodb+srv://santheesh:Santheesh%402006@cluster0.ok6mizb.mongodb.net/booksharing?retryWrites=true&w=majority', {
+mongoose.connect(process.env.MONGODB_URI,{
     useNewUrlParser: true,
     useUnifiedTopology: true
 }).then(() => {
