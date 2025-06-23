@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Borrow Book - Book Sharing</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/style.css">
+    <script>
+    fetch('/api/user')
+        .then(res => res.json())
+        .then(data => {
+            if (!data.loggedIn) window.location.href = '/login.html';
+        });
+    </script>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/home.html">BookShare</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0 nav-links">
+                    <li class="nav-item"><a class="nav-link" href="/home.html">Home</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/books.html">Browse Books</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/add-book.html">List a Book</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/logout">Logout</a></li>
+                </ul>
+                <span class="navbar-text user-info" id="userInfo"></span>
+            </div>
+        </div>
+    </nav>
+    <div class="container">
+        <h2>Borrow Book</h2>
+        <div id="bookDetails" class="mb-4"></div>
+        <form id="borrowForm" method="POST">
+            <button type="submit" class="btn btn-success">Confirm Borrow</button>
+        </form>
+        <div id="borrowMsg" class="mt-3"></div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Show user info
+        fetch('/api/user')
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById('userInfo').textContent = data.loggedIn
+                    ? `Logged in as: ${data.username}`
+                    : 'Not logged in';
+            });
+
+        // Get bookId from URL
+        const params = new URLSearchParams(window.location.search);
+        const bookId = params.get('bookId');
+        const bookDetailsDiv = document.getElementById('bookDetails');
+        const borrowForm = document.getElementById('borrowForm');
+        const borrowMsg = document.getElementById('borrowMsg');
+
+        if (bookId) {
+            fetch('/books')
+                .then(res => res.json())
+                .then(books => {
+                    const book = books.find(b => b._id === bookId);
+                    if (book) {
+                        bookDetailsDiv.innerHTML = `
+                            <div class="card">
+                                <div class="card-body">
+                                    <h5 class="card-title">${book.title}</h5>
+                                    <h6 class="card-subtitle mb-2 text-muted">by ${book.author}</h6>
+                                    <p class="card-text">${book.description || ''}</p>
+                                    <span class="badge bg-primary">${book.forSale ? 'For Sale' : 'Available to Borrow'}</span>
+                                </div>
+                            </div>
+                        `;
+                    } else {
+                        bookDetailsDiv.innerHTML = '<div class="alert alert-danger">Book not found.</div>';
+                        borrowForm.style.display = 'none';
+                    }
+                });
+            borrowForm.onsubmit = function(e) {
+                e.preventDefault();
+                fetch('/borrow/' + bookId, { method: 'POST' })
+                    .then(res => res.text())
+                    .then(msg => {
+                        borrowMsg.innerHTML = `<div class="alert alert-info">${msg}</div>`;
+                        borrowForm.style.display = 'none';
+                    });
+            };
+        } else {
+            bookDetailsDiv.innerHTML = '<div class="alert alert-danger">No book selected.</div>';
+            borrowForm.style.display = 'none';
+        }
+    </script>
+</body>
+</html>
