@@ -64,24 +64,39 @@
         function renderBooks(books) {
             const list = document.getElementById('booksList');
             list.innerHTML = '';
-            books.forEach(book => {
-                const div = document.createElement('div');
-                div.className = "card mb-3";
-                div.innerHTML = `
-                    <div class="card-body">
-                        <h5 class="card-title">${book.title} <small class="text-muted">by ${book.author}</small></h5>
-                        <p class="card-text">${book.description || ''}</p>
-                        <p class="card-text">${book.forSale ? '<span class="badge bg-success">For Sale: $' + book.price + '</span>' : '<span class="badge bg-primary">Available to Borrow</span>'}</p>
-                        <p class="card-text"><strong>Owner Phone:</strong> ${book.ownerPhone ? book.ownerPhone : 'N/A'}</p>
-                        <form method="GET" action="${book.forSale ? '/purchase.html' : '/borrow.html'}" class="d-inline">
-                            <input type="hidden" name="bookId" value="${book._id}">
-                            <button type="submit" class="btn btn-${book.forSale ? 'warning' : 'success'}">${book.forSale ? 'Purchase' : 'Borrow'}</button>
-                        </form>
-                        <a href="/review.html?bookId=${book._id}" class="btn btn-outline-secondary ms-2">Add Review</a>
-                    </div>
-                `;
-                list.appendChild(div);
-            });
+            fetch('/api/user')
+                .then(res => res.json())
+                .then(userData => {
+                    books.forEach(book => {
+                        const div = document.createElement('div');
+                        div.className = "card mb-3";
+                        let ownerAction = '';
+                        if (userData.loggedIn && userData.userId === String(book.ownerId) && !book.available) {
+                            ownerAction = `
+                                <form method="POST" action="/books/${book._id}/available" class="d-inline" onsubmit="return confirm('Make this book available again?');">
+                                    <button type="submit" class="btn btn-outline-success ms-2">Make Available</button>
+                                </form>
+                            `;
+                        }
+                        div.innerHTML = `
+                            <div class="card-body">
+                                <h5 class="card-title">${book.title} <small class="text-muted">by ${book.author}</small></h5>
+                                <p class="card-text">${book.description || ''}</p>
+                                <p class="card-text">${book.forSale ? '<span class="badge bg-success">For Sale: $' + book.price + '</span>' : '<span class="badge bg-primary">Available to Borrow</span>'}</p>
+                                <p class="card-text"><strong>Owner Phone:</strong> ${book.ownerPhone ? book.ownerPhone : 'N/A'}</p>
+                                ${book.available ? `
+                                    <form method="GET" action="${book.forSale ? '/purchase.html' : '/borrow.html'}" class="d-inline">
+                                        <input type="hidden" name="bookId" value="${book._id}">
+                                        <button type="submit" class="btn btn-${book.forSale ? 'warning' : 'success'}">${book.forSale ? 'Purchase' : 'Borrow'}</button>
+                                    </form>
+                                ` : `<span class="badge bg-secondary">Not Available</span>`}
+                                <a href="/review.html?bookId=${book._id}" class="btn btn-outline-secondary ms-2">Add Review</a>
+                                ${ownerAction}
+                            </div>
+                        `;
+                        list.appendChild(div);
+                    });
+                });
         }
         function fetchBooks(query = '') {
             fetch(query ? `/search?q=${encodeURIComponent(query)}` : '/books')

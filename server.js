@@ -211,11 +211,26 @@ app.post('/return/:bookId', requireLogin, async (req, res) => {
     res.send('Book returned.');
 });
 
+// Add this route to handle making a book available again
+app.post('/books/:bookId/available', requireLogin, async (req, res) => {
+    const bookId = req.params.bookId;
+    const book = await Book.findById(bookId);
+    if (!book) return res.status(404).send('Book not found.');
+    // Only the owner can make their book available
+    if (String(book.ownerId) !== String(req.session.userId)) {
+        return res.status(403).send('Unauthorized');
+    }
+    book.available = true;
+    await book.save();
+    res.redirect('/books.html');
+});
+
+// API to get current user info (for navbar and book owner actions)
 app.get('/api/user', async (req, res) => {
     if (!req.session.userId) return res.json({ loggedIn: false });
     const user = await User.findById(req.session.userId);
     if (!user) return res.json({ loggedIn: false });
-    res.json({ loggedIn: true, username: user.username });
+    res.json({ loggedIn: true, username: user.username, userId: String(user._id) });
 });
 
 app.listen(PORT, () => {
