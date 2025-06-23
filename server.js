@@ -20,7 +20,8 @@ const { Schema, model, Types } = mongoose;
 
 const User = model('User', new Schema({
     username: String,
-    password: String
+    password: String,
+    phone: String // Add phone field
 }));
 
 const Book = model('Book', new Schema({
@@ -71,14 +72,18 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
+// Registration
 app.post('/register', async (req, res) => {
-    const { username, password } = req.body;
+    const { username, password, phone } = req.body;
     const existingUser = await User.findOne({ username });
     if (existingUser) return res.send('Username already exists.');
     if (!isStrongPassword(password)) {
         return res.send('Password must be at least 8 characters long and include uppercase, lowercase, and a number.');
     }
-    const user = new User({ username, password });
+    if (!phone || !/^\d{10}$/.test(phone)) {
+        return res.send('Please enter a valid 10-digit phone number.');
+    }
+    const user = new User({ username, password, phone });
     await user.save();
     res.redirect('/login.html');
 });
@@ -97,7 +102,17 @@ app.get('/logout', (req, res) => {
 
 app.get('/books', async (req, res) => {
     const books = await Book.find();
-    res.json(books);
+    // Fetch owner phone numbers
+    const userIds = books.map(b => b.ownerId);
+    const users = await User.find({ _id: { $in: userIds } });
+    const userMap = {};
+    users.forEach(u => userMap[u._id] = u.phone);
+    // Attach phone to each book
+    const booksWithPhone = books.map(b => ({
+        ...b.toObject(),
+        ownerPhone: userMap[b.ownerId] || ''
+    }));
+    res.json(booksWithPhone);
 });
 
 app.post('/books', requireLogin, async (req, res) => {
@@ -126,6 +141,7 @@ app.get('/search', async (req, res) => {
     res.json(results);
 });
 
+// Borrow request (send owner phone in response)
 app.post('/borrow/:bookId', requireLogin, async (req, res) => {
     const book = await Book.findById(req.params.bookId);
     if (!book || !book.available) return res.send('Book not available.');
@@ -137,15 +153,20 @@ app.post('/borrow/:bookId', requireLogin, async (req, res) => {
     await borrow.save();
     book.available = false;
     await book.save();
-    res.send('Borrow request submitted.');
+    // Find owner phone
+    const owner = await User.findById(book.ownerId);
+    res.send(`Borrow request submitted. Contact owner at: ${owner ? owner.phone : 'N/A'}`);
 });
 
+// Purchase request (send owner phone in response)
 app.post('/purchase/:bookId', requireLogin, async (req, res) => {
     const book = await Book.findById(req.params.bookId);
     if (!book || !book.available || !book.forSale) return res.send('Book not available for sale.');
     book.available = false;
     await book.save();
-    res.send('Purchase request submitted. (Payment integration coming soon)');
+    // Find owner phone
+    const owner = await User.findById(book.ownerId);
+    res.send(`Purchase request submitted. Contact owner at: ${owner ? owner.phone : 'N/A'}`);
 });
 
 app.post('/review/:bookId', requireLogin, async (req, res) => {

@@ -72,6 +72,7 @@
                         <h5 class="card-title">${book.title} <small class="text-muted">by ${book.author}</small></h5>
                         <p class="card-text">${book.description || ''}</p>
                         <p class="card-text">${book.forSale ? '<span class="badge bg-success">For Sale: $' + book.price + '</span>' : '<span class="badge bg-primary">Available to Borrow</span>'}</p>
+                        <p class="card-text"><strong>Owner Phone:</strong> ${book.ownerPhone ? book.ownerPhone : 'N/A'}</p>
                         <form method="GET" action="${book.forSale ? '/purchase.html' : '/borrow.html'}" class="d-inline">
                             <input type="hidden" name="bookId" value="${book._id}">
                             <button type="submit" class="btn btn-${book.forSale ? 'warning' : 'success'}">${book.forSale ? 'Purchase' : 'Borrow'}</button>

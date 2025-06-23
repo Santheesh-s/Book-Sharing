@@ -12,8 +12,10 @@
         <form method="POST" action="/register" id="registerForm">
             Username: <input name="username" required><br>
             Password: <input name="password" type="password" required id="password"><br>
+            Phone Number: <input name="phone" type="text" required id="phone" pattern="\d{10}" maxlength="10"><br>
             <small>Password must be at least 8 characters, include uppercase, lowercase, and a number.</small>
             <div id="pwError" style="color:red;"></div>
+            <div id="phoneError" style="color:red;"></div>
             <button type="submit">Register</button>
         </form>
         <a href="/login.html" class="button-link">Already have an account? Login</a>
@@ -33,11 +35,21 @@
 
         document.getElementById('registerForm').onsubmit = function(e) {
             const pw = document.getElementById('password').value;
-            const strong = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/.test(pw);
-            if (!strong) {
+            const phone = document.getElementById('phone').value;
+            let valid = true;
+            if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/.test(pw)) {
                 document.getElementById('pwError').textContent = 'Password is not strong enough.';
-                e.preventDefault();
+                valid = false;
+            } else {
+                document.getElementById('pwError').textContent = '';
             }
+            if (!/^\d{10}$/.test(phone)) {
+                document.getElementById('phoneError').textContent = 'Enter a valid 10-digit phone number.';
+                valid = false;
+            } else {
+                document.getElementById('phoneError').textContent = '';
+            }
+            if (!valid) e.preventDefault();
         };
     </script>
 </body>
