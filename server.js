@@ -228,10 +228,9 @@ app.get('/api/user', async (req, res) => {
     }
 });
 
-app.get('/api/user-stats', async (req, res) => {
+app.get('/api/user-stats', requireLogin, async (req, res) => {
     try {
-        if (!req.session.userId) return res.json({ booksListed: 0, booksBorrowed: 0, booksSold: 0, reviewsGiven: 0 });
-        const userId = req.session.userId;
+        const userId = req.userId;
         
         const booksListed = inMemoryDB.books.filter(b => b.ownerId === userId).length;
         const booksBorrowed = inMemoryDB.borrowRequests.filter(br => br.borrowerId === userId).length;
