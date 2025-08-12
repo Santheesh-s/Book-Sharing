@@ -2,31 +2,35 @@
   "name": "book-sharing",
   "version": "2.0.0",
   "description": "A platform for selling and borrowing used books - React + Go version.",
-  "main": "main.go",
+  "main": "server.js",
   "scripts": {
     "install-frontend": "cd frontend && npm install",
-    "install-backend": "go mod tidy",
-    "install-all": "npm run install-backend && npm run install-frontend",
-    "dev": "concurrently \"npm run dev-backend\" \"npm run dev-frontend\"",
-    "dev-backend": "go run main.go",
+    "install-all": "npm run install-frontend",
+    "dev": "concurrently \"node server.js\" \"npm run dev-frontend\"",
+    "dev-backend": "node server.js",
     "dev-frontend": "cd frontend && npm run dev",
     "build-frontend": "cd frontend && npm run build",
     "build": "npm run build-frontend",
-    "start": "go run main.go",
-    "clean": "rm -rf frontend/dist && rm -rf frontend/node_modules"
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.18.2",
+    "express-session": "^1.17.3",
+    "mongoose": "^8.16.0"
   },
   "devDependencies": {
     "concurrently": "^8.2.0"
   },
   "engines": {
-    "node": ">=16.0.0",
-    "go": ">=1.21.0"
+    "node": ">=16.0.0"
   },
   "keywords": [
     "books",
     "sharing",
     "react",
-    "go",
+    "nodejs",
     "mongodb",
     "vite"
   ],
