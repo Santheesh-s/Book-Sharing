@@ -68,8 +68,14 @@ app.use(express.urlencoded({ extended: true }));
 app.use(session({
     secret: 'book-sharing-secret',
     resave: false,
-    saveUninitialized: true,
-    cookie: { maxAge: 5 * 60 * 1000 }
+    saveUninitialized: false,
+    cookie: {
+        maxAge: 24 * 60 * 60 * 1000, // 24 hours
+        httpOnly: true,
+        secure: false, // Set to true if using HTTPS
+        sameSite: 'lax'
+    },
+    name: 'bookshare-session'
 }));
 
 // Helpers
