@@ -81,6 +81,7 @@ export const AuthProvider = ({ children }) => {
   const logout = async () => {
     try {
       await authAPI.logout();
+      localStorage.removeItem('bookshare-token');
       setUser(null);
       setUserStats({
         booksListed: 0,
@@ -90,6 +91,7 @@ export const AuthProvider = ({ children }) => {
       });
     } catch (error) {
       console.error('Logout failed:', error);
+      localStorage.removeItem('bookshare-token');
     }
   };
 
