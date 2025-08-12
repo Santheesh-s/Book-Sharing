@@ -122,9 +122,17 @@ app.post('/api/register', async (req, res) => {
 app.post('/api/login', async (req, res) => {
     try {
         const { username, password } = req.body;
+        console.log('🔐 Login attempt:', { username, password: '***' });
+        console.log('📊 Available users:', inMemoryDB.users.map(u => ({ username: u.username, id: u.id })));
+
         const user = inMemoryDB.users.find(u => u.username === username && u.password === password);
-        if (!user) return res.status(401).json({ error: 'Invalid credentials' });
+        if (!user) {
+            console.log('❌ Login failed: Invalid credentials');
+            return res.status(401).json({ error: 'Invalid credentials' });
+        }
+
         req.session.userId = user.id;
+        console.log('✅ Login successful for user:', user.username);
         res.json({ message: 'Login successful', username: user.username, userId: user.id });
     } catch (error) {
         console.error('Login error:', error);
