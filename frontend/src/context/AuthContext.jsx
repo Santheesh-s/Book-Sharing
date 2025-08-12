@@ -23,6 +23,13 @@ export const AuthProvider = ({ children }) => {
 
   const checkAuthStatus = async () => {
     try {
+      const token = localStorage.getItem('bookshare-token');
+      if (!token) {
+        setUser(null);
+        setLoading(false);
+        return;
+      }
+
       const response = await authAPI.getCurrentUser();
       if (response.data.loggedIn) {
         setUser(response.data);
@@ -31,10 +38,12 @@ export const AuthProvider = ({ children }) => {
         setUserStats(statsResponse.data);
       } else {
         setUser(null);
+        localStorage.removeItem('bookshare-token');
       }
     } catch (error) {
       console.error('Auth check failed:', error);
       setUser(null);
+      localStorage.removeItem('bookshare-token');
     } finally {
       setLoading(false);
     }
@@ -43,14 +52,16 @@ export const AuthProvider = ({ children }) => {
   const login = async (credentials) => {
     try {
       const response = await authAPI.login(credentials);
-      if (response.data.username) {
+      if (response.data.token) {
+        // Store token in localStorage
+        localStorage.setItem('bookshare-token', response.data.token);
         await checkAuthStatus();
         return { success: true };
       }
     } catch (error) {
-      return { 
-        success: false, 
-        error: error.response?.data?.error || 'Login failed' 
+      return {
+        success: false,
+        error: error.response?.data?.error || 'Login failed'
       };
     }
   };
