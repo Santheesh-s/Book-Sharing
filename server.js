@@ -149,9 +149,17 @@ app.post('/api/logout', (req, res) => {
 
 app.get('/api/user', async (req, res) => {
     try {
-        if (!req.session.userId) return res.json({ loggedIn: false });
+        console.log('👤 Checking user session, userId:', req.session.userId);
+        if (!req.session.userId) {
+            console.log('❌ No session userId found');
+            return res.json({ loggedIn: false });
+        }
         const user = inMemoryDB.users.find(u => u.id === req.session.userId);
-        if (!user) return res.json({ loggedIn: false });
+        if (!user) {
+            console.log('❌ User not found for session userId:', req.session.userId);
+            return res.json({ loggedIn: false });
+        }
+        console.log('✅ User found:', user.username);
         res.json({ loggedIn: true, username: user.username, userId: user.id });
     } catch (error) {
         console.error('Get user error:', error);
