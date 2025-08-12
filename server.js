@@ -8,11 +8,47 @@ const PORT = process.env.PORT || 3001;
 
 // In-memory database (temporary solution until MongoDB is available)
 const inMemoryDB = {
-    users: [],
-    books: [],
+    users: [
+        // Sample user for testing
+        {
+            id: '1',
+            username: 'testuser',
+            password: 'TestPass123',
+            phone: '1234567890'
+        },
+        {
+            id: '2',
+            username: 'demo',
+            password: 'DemoPass123',
+            phone: '9876543210'
+        }
+    ],
+    books: [
+        // Sample books for testing
+        {
+            id: '1',
+            title: 'The Great Gatsby',
+            author: 'F. Scott Fitzgerald',
+            description: 'Classic American novel in excellent condition',
+            forSale: true,
+            price: 15.99,
+            ownerId: '1',
+            available: true
+        },
+        {
+            id: '2',
+            title: 'To Kill a Mockingbird',
+            author: 'Harper Lee',
+            description: 'Timeless story about justice and morality',
+            forSale: false,
+            price: 0,
+            ownerId: '2',
+            available: true
+        }
+    ],
     reviews: [],
     borrowRequests: [],
-    nextId: 1
+    nextId: 3
 };
 
 // Helper function to generate IDs
