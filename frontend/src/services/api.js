@@ -10,6 +10,15 @@ const api = axios.create({
   },
 });
 
+// Add token to requests
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem('bookshare-token');
+  if (token) {
+    config.headers['x-auth-token'] = token;
+  }
+  return config;
+});
+
 // Auth API
 export const authAPI = {
   register: (userData) => api.post('/register', userData),
