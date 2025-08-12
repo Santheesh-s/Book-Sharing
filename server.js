@@ -86,6 +86,12 @@ function isValidPhone(phone) {
     return /^\d{10}$/.test(phone);
 }
 
+// Test endpoint
+app.get('/api/test', (req, res) => {
+    console.log('🧪 Test endpoint hit');
+    res.json({ status: 'API is working!', timestamp: new Date().toISOString() });
+});
+
 // API Routes
 app.post('/api/register', async (req, res) => {
     try {
