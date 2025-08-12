@@ -98,7 +98,14 @@ app.use((req, res, next) => {
 
 // Helpers
 function requireLogin(req, res, next) {
-    if (!req.session.userId) return res.status(401).json({ error: 'Authentication required' });
+    const token = req.headers.authorization?.replace('Bearer ', '') || req.headers['x-auth-token'];
+    const userId = inMemoryDB.activeSessions.get(token);
+
+    if (!userId) {
+        return res.status(401).json({ error: 'Authentication required' });
+    }
+
+    req.userId = userId;
     next();
 }
 
