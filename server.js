@@ -58,6 +58,11 @@ function generateId() {
     return (inMemoryDB.nextId++).toString();
 }
 
+// Helper function to generate session tokens
+function generateToken() {
+    return Math.random().toString(36).substring(2) + Date.now().toString(36);
+}
+
 // Middleware
 app.use(cors({
     origin: true, // Allow all origins for now
