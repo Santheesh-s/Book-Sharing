@@ -48,7 +48,9 @@ const inMemoryDB = {
     ],
     reviews: [],
     borrowRequests: [],
-    nextId: 3
+    nextId: 3,
+    // Simple token-based sessions
+    activeSessions: new Map() // token -> userId
 };
 
 // Helper function to generate IDs
