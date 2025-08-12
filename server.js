@@ -133,9 +133,12 @@ app.post('/api/login', async (req, res) => {
 
         req.session.userId = user.id;
         console.log('✅ Login successful for user:', user.username);
+        console.log('🔑 Session ID set to:', req.session.userId);
+        console.log('📨 Sending response:', { message: 'Login successful', username: user.username, userId: user.id });
+
         res.json({ message: 'Login successful', username: user.username, userId: user.id });
     } catch (error) {
-        console.error('Login error:', error);
+        console.error('❌ Login error:', error);
         res.status(500).json({ error: 'Login failed' });
     }
 });
