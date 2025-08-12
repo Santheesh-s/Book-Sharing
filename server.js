@@ -190,7 +190,12 @@ app.post('/api/login', async (req, res) => {
 });
 
 app.post('/api/logout', (req, res) => {
-    req.session.destroy(() => res.json({ message: 'Logout successful' }));
+    const token = req.headers.authorization?.replace('Bearer ', '') || req.headers['x-auth-token'];
+    if (token) {
+        inMemoryDB.activeSessions.delete(token);
+        console.log('🚪 User logged out, token removed');
+    }
+    res.json({ message: 'Logout successful' });
 });
 
 app.get('/api/user', async (req, res) => {
