@@ -303,7 +303,7 @@ app.post('/api/borrow/:id', requireLogin, async (req, res) => {
         const borrow = {
             id: generateId(),
             bookId: book.id,
-            borrowerId: req.session.userId,
+            borrowerId: req.userId,
             status: 'pending'
         };
         inMemoryDB.borrowRequests.push(borrow);
@@ -333,9 +333,9 @@ app.post('/api/purchase/:id', requireLogin, async (req, res) => {
 
 app.post('/api/return/:id', requireLogin, async (req, res) => {
     try {
-        const borrow = inMemoryDB.borrowRequests.find(br => 
-            br.bookId === req.params.id && 
-            br.borrowerId === req.session.userId && 
+        const borrow = inMemoryDB.borrowRequests.find(br =>
+            br.bookId === req.params.id &&
+            br.borrowerId === req.userId &&
             br.status === 'pending'
         );
         if (!borrow) return res.status(400).json({ error: 'No active borrow found' });
@@ -357,7 +357,7 @@ app.post('/api/books/:id/available', requireLogin, async (req, res) => {
         const bookId = req.params.id;
         const book = inMemoryDB.books.find(b => b.id === bookId);
         if (!book) return res.status(404).json({ error: 'Book not found' });
-        if (book.ownerId !== req.session.userId) {
+        if (book.ownerId !== req.userId) {
             return res.status(403).json({ error: 'Unauthorized' });
         }
         
@@ -377,7 +377,7 @@ app.post('/api/reviews/:id', requireLogin, async (req, res) => {
         const review = {
             id: generateId(),
             bookId: req.params.id,
-            userId: req.session.userId,
+            userId: req.userId,
             rating: Number(rating),
             comment
         };
