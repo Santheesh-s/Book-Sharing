@@ -78,6 +78,17 @@ app.use(session({
     name: 'bookshare-session'
 }));
 
+// Debug middleware for sessions
+app.use((req, res, next) => {
+    console.log('🍪 Session Debug:', {
+        sessionID: req.sessionID,
+        userId: req.session?.userId,
+        path: req.path,
+        method: req.method
+    });
+    next();
+});
+
 // Helpers
 function requireLogin(req, res, next) {
     if (!req.session.userId) return res.status(401).json({ error: 'Authentication required' });
