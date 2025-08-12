@@ -270,7 +270,7 @@ app.post('/api/books', requireLogin, async (req, res) => {
             description,
             forSale,
             price: price || 0,
-            ownerId: req.session.userId,
+            ownerId: req.userId,
             available: true
         };
         inMemoryDB.books.push(book);
