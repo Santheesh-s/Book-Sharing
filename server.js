@@ -200,16 +200,26 @@ app.post('/api/logout', (req, res) => {
 
 app.get('/api/user', async (req, res) => {
     try {
-        console.log('👤 Checking user session, userId:', req.session.userId);
-        if (!req.session.userId) {
-            console.log('❌ No session userId found');
+        const token = req.headers.authorization?.replace('Bearer ', '') || req.headers['x-auth-token'];
+        console.log('👤 Checking user token:', token ? token.substring(0, 10) + '...' : 'none');
+
+        if (!token) {
+            console.log('❌ No token provided');
             return res.json({ loggedIn: false });
         }
-        const user = inMemoryDB.users.find(u => u.id === req.session.userId);
+
+        const userId = inMemoryDB.activeSessions.get(token);
+        if (!userId) {
+            console.log('❌ Invalid or expired token');
+            return res.json({ loggedIn: false });
+        }
+
+        const user = inMemoryDB.users.find(u => u.id === userId);
         if (!user) {
-            console.log('❌ User not found for session userId:', req.session.userId);
+            console.log('❌ User not found for userId:', userId);
             return res.json({ loggedIn: false });
         }
+
         console.log('✅ User found:', user.username);
         res.json({ loggedIn: true, username: user.username, userId: user.id });
     } catch (error) {
