@@ -170,12 +170,19 @@ app.post('/api/login', async (req, res) => {
             return res.status(401).json({ error: 'Invalid credentials' });
         }
 
-        req.session.userId = user.id;
-        console.log('✅ Login successful for user:', user.username);
-        console.log('🔑 Session ID set to:', req.session.userId);
-        console.log('📨 Sending response:', { message: 'Login successful', username: user.username, userId: user.id });
+        // Generate token and store session
+        const token = generateToken();
+        inMemoryDB.activeSessions.set(token, user.id);
 
-        res.json({ message: 'Login successful', username: user.username, userId: user.id });
+        console.log('✅ Login successful for user:', user.username);
+        console.log('🔑 Token generated:', token.substring(0, 10) + '...');
+
+        res.json({
+            message: 'Login successful',
+            username: user.username,
+            userId: user.id,
+            token: token
+        });
     } catch (error) {
         console.error('❌ Login error:', error);
         res.status(500).json({ error: 'Login failed' });
