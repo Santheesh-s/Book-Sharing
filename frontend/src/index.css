@@ -1,0 +1,134 @@
+body {
+  font-family: 'Segoe UI', Arial, sans-serif;
+  background: #f6f8fa;
+  margin: 0;
+  padding: 0;
+}
+
+.navbar-brand {
+  font-weight: bold;
+}
+
+.card {
+  border: none;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+}
+
+.btn {
+  border-radius: 6px;
+  font-weight: 500;
+}
+
+.form-control {
+  border-radius: 6px;
+  border: 1px solid #d1d5da;
+}
+
+.form-control:focus {
+  border-color: #0366d6;
+  box-shadow: 0 0 0 0.2rem rgba(3, 102, 214, 0.25);
+}
+
+.alert {
+  border-radius: 6px;
+}
+
+.main-container {
+  min-height: calc(100vh - 76px);
+  padding-top: 2rem;
+}
+
+.auth-form {
+  max-width: 400px;
+  margin: 0 auto;
+  background: white;
+  padding: 2rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.book-card {
+  border: none;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+  transition: transform 0.2s ease-in-out;
+}
+
+.book-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.stats-card {
+  text-align: center;
+  border: none;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+}
+
+.stats-number {
+  font-size: 2rem;
+  font-weight: bold;
+  color: #0366d6;
+}
+
+.error-message {
+  color: #d73a49;
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+}
+
+.success-message {
+  color: #28a745;
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+}
+
+.loading-spinner {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border: 3px solid rgba(255,255,255,.3);
+  border-radius: 50%;
+  border-top-color: #fff;
+  animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.search-form {
+  margin-bottom: 2rem;
+}
+
+.quick-actions {
+  margin: 2rem 0;
+}
+
+.testimonial {
+  font-style: italic;
+  margin: 1rem 0;
+  padding: 1rem;
+  background: #f8f9fa;
+  border-left: 4px solid #0366d6;
+  border-radius: 0 6px 6px 0;
+}
+
+.feature-icon {
+  font-size: 2rem;
+  margin-bottom: 1rem;
+}
+
+@media (max-width: 768px) {
+  .auth-form {
+    margin: 0 1rem;
+    padding: 1.5rem;
+  }
+  
+  .main-container {
+    padding-top: 1rem;
+  }
+  
+  .stats-number {
+    font-size: 1.5rem;
+  }
+}
