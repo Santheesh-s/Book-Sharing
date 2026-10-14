@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Registration - Campus Book Share</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body class="bg-light">
+    <div class="container min-vh-100 d-flex justify-content-center align-items-center py-4">
+        <div class="card shadow-lg border-0 rounded-3 p-4" style="max-width: 480px; width: 100%;">
+            <div class="text-center mb-4">
+                <h2 class="fw-bold text-primary mb-1">🎓 Join CampusBookShare</h2>
+                <p class="text-muted small">Register to sell, buy, or lend college textbooks</p>
+            </div>
+
+            <div id="alertBox"></div>
+
+            <form method="POST" action="" id="registerForm" autocomplete="off">
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Full Name <span class="text-danger">*</span></label>
+                    <input name="fullName" class="form-control" placeholder="e.g. Santheesh S" autocomplete="off" required>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">College / Institution Name <span class="text-danger">*</span></label>
+                    <input name="collegeName" class="form-control" placeholder="e.g. Kongu Engineering College" autocomplete="off" required>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Student Email Address <span class="text-danger">*</span></label>
+                    <input name="email" type="email" class="form-control" placeholder="e.g. santheeshs.23cse@kongu.edu" autocomplete="off" required>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Mobile Phone Number <span class="text-danger">*</span></label>
+                    <input name="phone" type="text" class="form-control" placeholder="10-digit mobile number" autocomplete="off" required id="phone" pattern="\d{10}" maxlength="10">
+                    <div id="phoneError" class="form-text text-danger"></div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Password <span class="text-danger">*</span></label>
+                    <div class="input-group">
+                        <input name="password" type="password" class="form-control" placeholder="Create password" autocomplete="new-password" required id="password">
+                        <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('password', this)">
+                            👁️
+                        </button>
+                    </div>
+                    <div id="pwError" class="form-text text-danger"></div>
+                    <small class="text-muted d-block mt-1 fs-7">Must be 8+ chars with uppercase, lowercase, and a number.</small>
+                </div>
+
+                <div class="d-grid mb-3">
+                    <button type="submit" class="btn btn-success btn-lg fw-bold">Complete Registration</button>
+                </div>
+            </form>
+
+            <div class="text-center border-top pt-3">
+                <p class="mb-0 text-muted small">Already registered? <a href="/login.html" class="fw-bold text-decoration-none">Sign In</a></p>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="config.js"></script>
+    <script>
+        const registerForm = document.getElementById('registerForm');
+        const alertBox = document.getElementById('alertBox');
+
+        function togglePassword(inputId, btn) {
+            const input = document.getElementById(inputId);
+            if (input.type === 'password') {
+                input.type = 'text';
+                btn.textContent = '🙈';
+            } else {
+                input.type = 'password';
+                btn.textContent = '👁️';
+            }
+        }
+
+        window.addEventListener('pageshow', function () {
+            if (registerForm) registerForm.reset();
+        });
+
+        registerForm.addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            const pw = document.getElementById('password').value;
+            const phone = document.getElementById('phone').value;
+            let valid = true;
+            if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/.test(pw)) {
+                document.getElementById('pwError').textContent = 'Password must be 8+ characters with uppercase, lowercase & number.';
+                valid = false;
+            } else {
+                document.getElementById('pwError').textContent = '';
+            }
+            if (!/^\d{10}$/.test(phone)) {
+                document.getElementById('phoneError').textContent = 'Enter a valid 10-digit phone number.';
+                valid = false;
+            } else {
+                document.getElementById('phoneError').textContent = '';
+            }
+            if (!valid) return;
+
+            const formData = new FormData(registerForm);
+            const payload = Object.fromEntries(formData.entries());
+
+            fetch(API_BASE_URL + '/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        window.location.href = '/login.html?registered=true';
+                    } else {
+                        alertBox.innerHTML = `<div class="alert alert-danger">${data.error || 'Registration failed.'}</div>`;
+                    }
+                })
+                .catch(() => {
+                    alertBox.innerHTML = '<div class="alert alert-danger">Something went wrong. Please try again.</div>';
+                });
+        });
+    </script>
+</body>
+
+</html>

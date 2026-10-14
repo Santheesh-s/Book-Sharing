@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Borrow Textbook - Campus Book Share</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="style.css">
+    <script src="config.js"></script>
+    <script src="auth.js"></script>
+    <script>
+        fetch(API_BASE_URL + '/api/user', { headers: authHeaders() })
+            .then(res => res.json())
+            .then(data => {
+                if (!data.loggedIn) window.location.href = '/login.html';
+            });
+    </script>
+</head>
+
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark mb-4 shadow">
+        <div class="container">
+            <a class="navbar-brand" href="/home.html">
+                <span>🎓 Campus<span class="highlight">BookShare</span></span>
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item"><a class="nav-link" href="/home.html">Home</a></li>
+                    <li class="nav-item"><a class="nav-link active" href="/books.html">Browse Marketplace</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/add-book.html">Post a Book</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#" id="logoutLink">Logout</a></li>
+                </ul>
+                <span class="navbar-text fw-semibold" id="userInfo"></span>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container my-4" style="max-width: 680px;">
+        <div class="card shadow border-0 rounded-4 overflow-hidden">
+            <div class="card-header bg-success text-white py-3 px-4 d-flex justify-content-between align-items-center">
+                <div>
+                    <h4 class="mb-0 fs-5 fw-bold">🤝 Confirm Borrow Request</h4>
+                    <small class="text-white-50">Free peer-to-peer textbook lending between students</small>
+                </div>
+                <span class="badge bg-light text-success fs-6">Free Lending</span>
+            </div>
+
+            <div class="card-body p-4">
+                <div id="bookLoading" class="text-center py-4">
+                    <div class="spinner-border text-success" role="status"></div>
+                    <p class="text-muted small mt-2">Loading book details...</p>
+                </div>
+
+                <div id="bookDetails" class="d-none"></div>
+
+                <div id="borrowActionArea" class="d-none mt-4">
+                    <div class="alert alert-light border small text-secondary mb-4">
+                        <div class="fw-bold text-dark mb-1">ℹ️ Student Lending Courtesy:</div>
+                        <ul class="mb-0 ps-3">
+                            <li>This book is lent generously by a fellow student at zero cost.</li>
+                            <li>Confirming will immediately share the lender's contact information so you can meet on campus.</li>
+                            <li>Please handle the book with care and return it when your semester or exam is completed!</li>
+                        </ul>
+                    </div>
+
+                    <form id="borrowForm">
+                        <div class="d-grid">
+                            <button type="submit" id="confirmBtn" class="btn btn-success btn-lg fw-bold">
+                                📖 Confirm Request & Get Lender Contact
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <div id="borrowResult" class="mt-4"></div>
+            </div>
+        </div>
+
+        <div class="text-center mt-3">
+            <a href="/books.html" class="text-decoration-none small text-muted">← Back to Student Marketplace</a>
+        </div>
+    </div>
+
+    <footer>
+        <div class="container text-center">
+            <p class="mb-0">🎓 CampusBookShare — Student-to-Student Textbook Sharing & Marketplace</p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.getElementById('logoutLink').addEventListener('click', function (e) {
+            e.preventDefault();
+            logout();
+        });
+
+        let currentUserId = null;
+
+        fetch(API_BASE_URL + '/api/user', { headers: authHeaders() })
+            .then(res => res.json())
+            .then(data => {
+                if (data.loggedIn) {
+                    currentUserId = data.userId;
+                    const name = data.fullName || 'Student';
+                    const college = data.collegeName ? ` (${data.collegeName})` : '';
+                    document.getElementById('userInfo').textContent = `👤 ${name}${college}`;
+                }
+            });
+
+        const params = new URLSearchParams(window.location.search);
+        const bookId = params.get('bookId');
+        const bookLoading = document.getElementById('bookLoading');
+        const bookDetails = document.getElementById('bookDetails');
+        const actionArea = document.getElementById('borrowActionArea');
+        const borrowForm = document.getElementById('borrowForm');
+        const confirmBtn = document.getElementById('confirmBtn');
+        const borrowResult = document.getElementById('borrowResult');
+
+        if (bookId) {
+            fetch(API_BASE_URL + '/books/' + bookId, { headers: authHeaders() })
+                .then(res => res.json())
+                .then(book => {
+                    bookLoading.classList.add('d-none');
+
+                    if (!book || !book.title) {
+                        bookDetails.classList.remove('d-none');
+                        bookDetails.innerHTML = '<div class="alert alert-danger">Book listing not found or unavailable.</div>';
+                        return;
+                    }
+
+                    // If it is a Sale book, redirect to purchase.html
+                    if (book.listingType === 'Sale') {
+                        window.location.href = '/purchase.html?bookId=' + book._id;
+                        return;
+                    }
+
+                    bookDetails.classList.remove('d-none');
+                    bookDetails.innerHTML = `
+                        <div class="p-3 bg-light rounded-3 border mb-3">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <span class="badge badge-dept">${book.department || 'General'}</span>
+                                <span class="badge bg-secondary">${book.condition || 'Good Condition'}</span>
+                            </div>
+
+                            <h4 class="fw-bold mb-1 text-dark">${book.title}</h4>
+                            <h6 class="text-muted mb-3">by ${book.author}</h6>
+
+                            <p class="small text-secondary mb-3">${book.description || 'Shared by student for peer learning.'}</p>
+
+                            <div class="p-3 bg-white rounded-3 border mb-2">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="fw-bold text-dark">Exchange Type:</span>
+                                    <span class="badge bg-success fs-6">🤝 100% Free Student Lending</span>
+                                </div>
+                            </div>
+
+                            <div class="small text-muted mt-2 d-flex justify-content-between flex-wrap gap-2">
+                                <span>🏫 <strong>Campus:</strong> ${book.ownerCollege || book.collegeName}</span>
+                                <span>👤 <strong>Lender:</strong> ${book.ownerName || 'Student'}</span>
+                            </div>
+                        </div>
+                    `;
+
+                    if (!book.available) {
+                        borrowResult.innerHTML = '<div class="alert alert-secondary text-center">⚠️ This book is currently borrowed or unavailable.</div>';
+                        return;
+                    }
+
+                    if (currentUserId && String(book.ownerId) === String(currentUserId)) {
+                        borrowResult.innerHTML = '<div class="alert alert-info text-center">ℹ️ You are the owner of this book listing.</div>';
+                        return;
+                    }
+
+                    actionArea.classList.remove('d-none');
+                })
+                .catch(() => {
+                    bookLoading.classList.add('d-none');
+                    bookDetails.classList.remove('d-none');
+                    bookDetails.innerHTML = '<div class="alert alert-danger">Failed to load book details. Please try again.</div>';
+                });
+
+            borrowForm.onsubmit = function (e) {
+                e.preventDefault();
+                confirmBtn.disabled = true;
+                confirmBtn.textContent = 'Processing request...';
+                borrowResult.innerHTML = '';
+
+                fetch(API_BASE_URL + '/request-book/' + bookId, {
+                    method: 'POST',
+                    headers: authHeaders()
+                })
+                    .then(res => res.json())
+                    .then(data => {
+                        confirmBtn.disabled = false;
+                        confirmBtn.textContent = '📖 Confirm Request & Get Lender Contact';
+
+                        if (data.success) {
+                            actionArea.classList.add('d-none');
+                            const owner = data.owner || {};
+
+                            borrowResult.innerHTML = `
+                                <div class="alert alert-success border-0 shadow-sm p-4 rounded-3">
+                                    <h5 class="fw-bold text-success mb-2">🎉 Borrow Request Confirmed!</h5>
+                                    <p class="mb-3">${data.message}</p>
+
+                                    <div class="contact-card-box mt-3">
+                                        <h6 class="fw-bold text-dark mb-2">📞 Lender Contact Information:</h6>
+                                        <div class="mb-1"><strong>Name:</strong> ${owner.fullName || 'Student'}</div>
+                                        <div class="mb-1"><strong>Campus:</strong> ${owner.collegeName || 'College'}</div>
+                                        <div class="mb-1"><strong>Mobile:</strong> <a href="tel:${owner.phone}" class="fw-bold text-decoration-none">${owner.phone || 'N/A'}</a></div>
+                                        <div class="mb-3"><strong>Email:</strong> <a href="mailto:${owner.email}" class="fw-bold text-decoration-none">${owner.email || 'N/A'}</a></div>
+
+                                        <div class="d-flex gap-2 flex-wrap mt-2">
+                                            ${owner.phone && owner.phone !== 'N/A' ? `
+                                                <a href="tel:${owner.phone}" class="btn btn-success btn-sm">📞 Call Lender</a>
+                                                <a href="https://wa.me/91${owner.phone}" target="_blank" class="btn btn-outline-success btn-sm">💬 WhatsApp</a>
+                                            ` : ''}
+                                            ${owner.email && owner.email !== 'N/A' ? `
+                                                <a href="mailto:${owner.email}" class="btn btn-primary btn-sm">✉️ Email Lender</a>
+                                            ` : ''}
+                                            <a href="/home.html" class="btn btn-dark btn-sm">Go to Dashboard</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                        } else {
+                            borrowResult.innerHTML = `<div class="alert alert-danger">${data.error || 'Failed to confirm request.'}</div>`;
+                        }
+                    })
+                    .catch(() => {
+                        confirmBtn.disabled = false;
+                        confirmBtn.textContent = '📖 Confirm Request & Get Lender Contact';
+                        borrowResult.innerHTML = '<div class="alert alert-danger">Something went wrong. Please check your connection and try again.</div>';
+                    });
+            };
+        } else {
+            bookLoading.classList.add('d-none');
+            bookDetails.classList.remove('d-none');
+            bookDetails.innerHTML = '<div class="alert alert-warning text-center">No book selected. <a href="/books.html" class="fw-bold">Browse Books</a></div>';
+        }
+    </script>
+</body>
+
+</html>

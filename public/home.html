@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Dashboard - Campus Book Share</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="style.css">
+    <script src="config.js"></script>
+    <script src="auth.js"></script>
+</head>
+
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark mb-4 shadow">
+        <div class="container">
+            <a class="navbar-brand" href="/home.html">
+                <span>🎓 Campus<span class="highlight">BookShare</span></span>
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item"><a class="nav-link active" href="/home.html">Home</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/books.html">Browse Marketplace</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/add-book.html">Post a Book</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#" id="logoutLink">Logout</a></li>
+                </ul>
+                <span class="navbar-text fw-semibold" id="userInfo"></span>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mb-5">
+        <!-- Hero Greeting & Stats -->
+        <div class="hero-card p-4 p-md-5 mb-4 shadow-sm border">
+            <div id="welcomeUser" class="mb-3">
+                <h1 class="display-6 fw-bold text-dark mb-1">Student Dashboard</h1>
+                <p class="text-secondary small">Manage your textbook listings, peer requests, and campus handovers.</p>
+            </div>
+
+            <div class="row g-3 mt-2">
+                <div class="col-6 col-md-3">
+                    <div class="stat-box">
+                        <div class="stat-number text-primary" id="booksListedCount">0</div>
+                        <div class="stat-label">Books Listed</div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="stat-box">
+                        <div class="stat-number text-warning" id="incomingReqCount">0</div>
+                        <div class="stat-label">Incoming Requests</div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="stat-box">
+                        <div class="stat-number text-success" id="booksBorrowedCount">0</div>
+                        <div class="stat-label">Your Requests</div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="stat-box">
+                        <div class="stat-number text-info" id="reviewsGivenCount">0</div>
+                        <div class="stat-label">Reviews Written</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="card shadow-sm border-0 rounded-4 mb-4">
+            <div class="card-body p-4 d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <div>
+                    <h5 class="fw-bold mb-1">Quick Actions</h5>
+                    <p class="text-muted small mb-0">List textbooks or explore new semester materials</p>
+                </div>
+                <div class="d-flex gap-2 flex-wrap">
+                    <a href="/add-book.html" class="btn btn-success fw-bold shadow-sm">+ Post a Book</a>
+                    <a href="/books.html" class="btn btn-primary fw-bold shadow-sm">Explore Marketplace</a>
+                    <a href="/review.html" class="btn btn-outline-secondary fw-bold">⭐ Book Reviews</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Activity Tabs -->
+        <div class="card shadow-sm border-0 rounded-4">
+            <div class="card-header bg-white border-bottom p-3">
+                <ul class="nav nav-pills dash-tabs gap-2" id="dashboardTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="my-books-tab" data-bs-toggle="pill" data-bs-target="#my-books-content" type="button" role="tab">
+                            📚 Books You Listed (<span id="tabBooksCount">0</span>)
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="incoming-req-tab" data-bs-toggle="pill" data-bs-target="#incoming-req-content" type="button" role="tab">
+                            📬 Incoming Student Requests (<span id="tabIncomingCount">0</span>)
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="my-req-tab" data-bs-toggle="pill" data-bs-target="#my-req-content" type="button" role="tab">
+                            🤝 Your Outgoing Requests (<span id="tabOutgoingCount">0</span>)
+                        </button>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="card-body p-4">
+                <div class="tab-content" id="dashboardTabsContent">
+                    <!-- Tab 1: Books You Listed -->
+                    <div class="tab-pane fade show active" id="my-books-content" role="tabpanel">
+                        <div id="myBooksListContainer">
+                            <div class="text-center text-muted py-4">
+                                <div class="spinner-border spinner-border-sm text-primary mb-2"></div>
+                                <div>Loading your posted books...</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tab 2: Incoming Requests -->
+                    <div class="tab-pane fade" id="incoming-req-content" role="tabpanel">
+                        <div id="incomingReqListContainer">
+                            <div class="text-center text-muted py-4">
+                                <div class="spinner-border spinner-border-sm text-warning mb-2"></div>
+                                <div>Loading incoming requests...</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tab 3: Your Outgoing Requests -->
+                    <div class="tab-pane fade" id="my-req-content" role="tabpanel">
+                        <div id="outgoingReqListContainer">
+                            <div class="text-center text-muted py-4">
+                                <div class="spinner-border spinner-border-sm text-success mb-2"></div>
+                                <div>Loading your requests...</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <div class="container text-center">
+            <p class="mb-0">🎓 CampusBookShare — Student-to-Student Textbook Sharing & Marketplace</p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.getElementById('logoutLink').addEventListener('click', function (e) {
+            e.preventDefault();
+            logout();
+        });
+
+        fetch(API_BASE_URL + '/api/user', { headers: authHeaders() })
+            .then(res => res.json())
+            .then(data => {
+                if (!data.loggedIn) {
+                    window.location.href = '/login.html';
+                    return;
+                }
+
+                let name = data.fullName || 'Student';
+                const college = data.collegeName ? ` (${data.collegeName})` : '';
+                document.getElementById('userInfo').textContent = `👤 ${name}${college}`;
+                document.getElementById('welcomeUser').innerHTML = `
+                    <h1 class="display-6 fw-bold text-dark mb-1">Welcome back, ${name}! 👋</h1>
+                    <p class="text-secondary small">Campus: <strong>${data.collegeName || 'Campus'}</strong> • Student Email: <strong>${data.email}</strong></p>
+                `;
+
+                loadStats();
+                loadActivity();
+            })
+            .catch(() => {
+                window.location.href = '/login.html';
+            });
+
+        function loadStats() {
+            fetch(API_BASE_URL + '/api/user-stats', { headers: authHeaders() })
+                .then(res => res.json())
+                .then(stats => {
+                    document.getElementById('booksListedCount').textContent = stats.booksListed || 0;
+                    document.getElementById('incomingReqCount').textContent = stats.incomingRequests || 0;
+                    document.getElementById('booksBorrowedCount').textContent = stats.booksBorrowed || 0;
+                    document.getElementById('reviewsGivenCount').textContent = stats.reviewsGiven || 0;
+
+                    document.getElementById('tabBooksCount').textContent = stats.booksListed || 0;
+                    document.getElementById('tabIncomingCount').textContent = stats.incomingRequests || 0;
+                    document.getElementById('tabOutgoingCount').textContent = stats.booksBorrowed || 0;
+
+                    // Highlight incoming tab if requests exist
+                    if (stats.incomingRequests > 0) {
+                        document.getElementById('incoming-req-tab').classList.add('fw-bold');
+                    }
+                });
+        }
+
+        function loadActivity() {
+            fetch(API_BASE_URL + '/api/my-activity', { headers: authHeaders() })
+                .then(res => res.json())
+                .then(act => {
+                    renderMyBooks(act.myBooks || []);
+                    renderIncomingRequests(act.incomingRequests || []);
+                    renderOutgoingRequests(act.myRequests || []);
+                })
+                .catch(err => {
+                    console.error('Activity error:', err);
+                });
+        }
+
+        function renderMyBooks(books) {
+            const container = document.getElementById('myBooksListContainer');
+
+            if (!books || books.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-4 text-muted">
+                        <p class="mb-2">You haven't listed any textbooks yet.</p>
+                        <a href="/add-book.html" class="btn btn-success btn-sm fw-bold">+ Post Your First Book</a>
+                    </div>
+                `;
+                return;
+            }
+
+            let html = '<div class="list-group list-group-flush">';
+            books.forEach(b => {
+                const typeBadge = b.listingType === 'Sale'
+                    ? `<span class="badge badge-sale ms-2">💰 ₹${b.price}</span>`
+                    : `<span class="badge badge-lend ms-2">🤝 Free Lend</span>`;
+
+                const statusBadge = b.available
+                    ? `<span class="badge bg-success">Available</span>`
+                    : `<span class="badge bg-secondary">Reserved / Sold</span>`;
+
+                html += `
+                    <div class="list-group-item px-0 py-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
+                        <div>
+                            <strong class="text-dark fs-6">${b.title}</strong>
+                            <span class="text-muted small ms-1">by ${b.author}</span>
+                            ${typeBadge}
+                            <div class="small text-muted mt-1">
+                                Dept: ${b.department || 'General'} • Condition: ${b.condition || 'Good'}
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                            ${statusBadge}
+                            ${!b.available ? `
+                                <button class="btn btn-outline-success btn-sm" onclick="markAvailable('${b._id}')">Mark Available</button>
+                            ` : ''}
+                            <a href="/review.html?bookId=${b._id}" class="btn btn-outline-secondary btn-sm">⭐ Reviews</a>
+                            <button class="btn btn-outline-danger btn-sm" onclick="deleteBook('${b._id}')">Delete</button>
+                        </div>
+                    </div>
+                `;
+            });
+            html += '</div>';
+            container.innerHTML = html;
+        }
+
+        function renderIncomingRequests(requests) {
+            const container = document.getElementById('incomingReqListContainer');
+
+            if (!requests || requests.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-4 text-muted">
+                        <p class="mb-0">No incoming student requests right now. When a student requests one of your listed books, their details will appear here.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            let html = '<div class="row g-3">';
+            requests.forEach(r => {
+                const book = r.bookId || {};
+                const buyer = r.buyerBorrowerId || {};
+                const reqDate = new Date(r.createdAt).toLocaleDateString('en-IN', {
+                    day: 'numeric',
+                    month: 'short',
+                    year: 'numeric'
+                });
+
+                html += `
+                    <div class="col-md-6">
+                        <div class="card border p-3 shadow-sm rounded-3 bg-light">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <span class="badge bg-primary">${r.type === 'Buy' ? '💰 Purchase Request' : '🤝 Borrow Request'}</span>
+                                <small class="text-muted">${reqDate}</small>
+                            </div>
+                            <h6 class="fw-bold text-dark mb-1">${book.title || 'Textbook Listing'}</h6>
+                            <p class="text-muted small mb-2">by ${book.author || 'Author'}</p>
+
+                            <div class="p-2 bg-white rounded border small mb-3">
+                                <div class="fw-bold text-dark mb-1">👤 Student Requester:</div>
+                                <div><strong>Name:</strong> ${buyer.fullName || 'Student'}</div>
+                                <div><strong>Campus:</strong> ${buyer.collegeName || 'Campus'}</div>
+                                <div><strong>Mobile:</strong> <a href="tel:${buyer.phone}" class="fw-bold text-decoration-none">${buyer.phone || 'N/A'}</a></div>
+                                <div><strong>Email:</strong> <a href="mailto:${buyer.email}" class="text-decoration-none">${buyer.email || 'N/A'}</a></div>
+                            </div>
+
+                            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                                <div class="d-flex gap-1">
+                                    ${buyer.phone ? `<a href="tel:${buyer.phone}" class="btn btn-success btn-sm">📞 Call</a>` : ''}
+                                    ${buyer.phone ? `<a href="https://wa.me/91${buyer.phone}" target="_blank" class="btn btn-outline-success btn-sm">WhatsApp</a>` : ''}
+                                </div>
+                                <button class="btn btn-outline-danger btn-sm" onclick="cancelRequest('${r._id}')">Cancel / Complete</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            html += '</div>';
+            container.innerHTML = html;
+        }
+
+        function renderOutgoingRequests(requests) {
+            const container = document.getElementById('outgoingReqListContainer');
+
+            if (!requests || requests.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-4 text-muted">
+                        <p class="mb-2">You haven't requested any books yet.</p>
+                        <a href="/books.html" class="btn btn-primary btn-sm fw-bold">Explore Student Marketplace</a>
+                    </div>
+                `;
+                return;
+            }
+
+            let html = '<div class="row g-3">';
+            requests.forEach(r => {
+                const book = r.bookId || {};
+                const owner = book.ownerId || {};
+                const reqDate = new Date(r.createdAt).toLocaleDateString('en-IN', {
+                    day: 'numeric',
+                    month: 'short',
+                    year: 'numeric'
+                });
+
+                html += `
+                    <div class="col-md-6">
+                        <div class="card border p-3 shadow-sm rounded-3 bg-light">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <span class="badge bg-success">${r.type === 'Buy' ? `💰 Buy for ₹${book.price || 0}` : '🤝 Free Borrow'}</span>
+                                <small class="text-muted">${reqDate}</small>
+                            </div>
+                            <h6 class="fw-bold text-dark mb-1">${book.title || 'Textbook'}</h6>
+                            <p class="text-muted small mb-2">by ${book.author || 'Author'}</p>
+
+                            <div class="p-2 bg-white rounded border small mb-3">
+                                <div class="fw-bold text-dark mb-1">👤 Book Owner Contact:</div>
+                                <div><strong>Name:</strong> ${owner.fullName || 'Student Owner'}</div>
+                                <div><strong>Campus:</strong> ${owner.collegeName || book.collegeName || 'Campus'}</div>
+                                <div><strong>Mobile:</strong> <a href="tel:${owner.phone}" class="fw-bold text-decoration-none">${owner.phone || 'N/A'}</a></div>
+                                <div><strong>Email:</strong> <a href="mailto:${owner.email}" class="text-decoration-none">${owner.email || 'N/A'}</a></div>
+                            </div>
+
+                            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                                <div class="d-flex gap-1">
+                                    ${owner.phone ? `<a href="tel:${owner.phone}" class="btn btn-success btn-sm">📞 Call Owner</a>` : ''}
+                                    ${owner.phone ? `<a href="https://wa.me/91${owner.phone}" target="_blank" class="btn btn-outline-success btn-sm">WhatsApp</a>` : ''}
+                                </div>
+                                <button class="btn btn-outline-danger btn-sm" onclick="cancelRequest('${r._id}')">Cancel Request</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            html += '</div>';
+            container.innerHTML = html;
+        }
+
+        function markAvailable(bookId) {
+            if (!confirm('Mark this book as available again?')) return;
+            fetch(API_BASE_URL + '/books/' + bookId + '/available', {
+                method: 'POST',
+                headers: authHeaders()
+            })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        loadStats();
+                        loadActivity();
+                    } else {
+                        alert(data.error || 'Failed to update book.');
+                    }
+                });
+        }
+
+        function deleteBook(bookId) {
+            if (!confirm('Are you sure you want to delete this textbook listing?')) return;
+            fetch(API_BASE_URL + '/books/' + bookId, {
+                method: 'DELETE',
+                headers: authHeaders()
+            })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        loadStats();
+                        loadActivity();
+                    } else {
+                        alert(data.error || 'Failed to delete listing.');
+                    }
+                });
+        }
+
+        function cancelRequest(requestId) {
+            if (!confirm('Are you sure you want to cancel this request?')) return;
+            fetch(API_BASE_URL + '/requests/' + requestId, {
+                method: 'DELETE',
+                headers: authHeaders()
+            })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        loadStats();
+                        loadActivity();
+                    } else {
+                        alert(data.error || 'Failed to cancel request.');
+                    }
+                });
+        }
+    </script>
+</body>
+
+</html>

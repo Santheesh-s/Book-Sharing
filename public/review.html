@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Book Reviews & Ratings - Campus Book Share</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="style.css">
+    <script src="config.js"></script>
+    <script src="auth.js"></script>
+</head>
+
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark mb-4 shadow">
+        <div class="container">
+            <a class="navbar-brand" href="/home.html">
+                <span>🎓 Campus<span class="highlight">BookShare</span></span>
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item"><a class="nav-link" href="/home.html">Home</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/books.html">Browse Marketplace</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/add-book.html">Post a Book</a></li>
+                    <li class="nav-item" id="authNav"></li>
+                </ul>
+                <span class="navbar-text fw-semibold" id="userInfo"></span>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container my-4" style="max-width: 800px;">
+        <!-- Single Book Review View (when ?bookId is present) -->
+        <div id="singleBookSection">
+            <div id="bookLoading" class="text-center py-5">
+                <div class="spinner-border text-primary" role="status"></div>
+                <p class="text-muted small mt-2">Loading book and peer reviews...</p>
+            </div>
+
+            <div id="bookHeaderCard" class="card shadow border-0 rounded-4 mb-4 d-none">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-start mb-2 flex-wrap gap-2">
+                        <div>
+                            <span class="badge badge-dept me-2" id="bookDept">General</span>
+                            <span class="badge" id="bookTypeBadge">Lend</span>
+                        </div>
+                        <div id="avgRatingHeader" class="fs-5 fw-bold text-warning"></div>
+                    </div>
+
+                    <h3 class="fw-bold text-dark mb-1" id="bookTitle">Book Title</h3>
+                    <h6 class="text-muted mb-3" id="bookAuthor">by Author</h6>
+                    <p class="small text-secondary mb-3" id="bookDesc"></p>
+
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 pt-2 border-top text-muted small">
+                        <span id="bookCampus">🏫 Campus</span>
+                        <span id="bookOwner">👤 Listed by Student</span>
+                        <div id="bookActionBtns"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Submit Review Form Card -->
+            <div id="reviewFormCard" class="card shadow border-0 rounded-4 mb-4 d-none">
+                <div class="card-header bg-white py-3 px-4">
+                    <h5 class="mb-0 fw-bold text-dark">✍️ Write a Review for this Textbook</h5>
+                    <small class="text-muted">Help fellow campus peers know about book content, edition relevance, or condition</small>
+                </div>
+                <div class="card-body p-4">
+                    <div id="reviewAlertBox"></div>
+
+                    <form id="reviewForm">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold small text-uppercase text-secondary">Your Rating <span class="text-danger">*</span></label>
+                            <div class="star-rating-widget my-1">
+                                <input type="radio" id="star5" name="rating" value="5" required>
+                                <label for="star5" title="5 stars - Outstanding">★</label>
+                                <input type="radio" id="star4" name="rating" value="4">
+                                <label for="star4" title="4 stars - Very Good">★</label>
+                                <input type="radio" id="star3" name="rating" value="3">
+                                <label for="star3" title="3 stars - Good">★</label>
+                                <input type="radio" id="star2" name="rating" value="2">
+                                <label for="star2" title="2 stars - Fair">★</label>
+                                <input type="radio" id="star1" name="rating" value="1">
+                                <label for="star1" title="1 star - Poor">★</label>
+                            </div>
+                            <div class="form-text small" id="ratingText">Select 1 to 5 stars above</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold small text-uppercase text-secondary">Review & Helpful Notes <span class="text-danger">*</span></label>
+                            <textarea id="commentInput" name="comment" class="form-control" rows="3" placeholder="Share your experience: Is this book good for semester exams? Are solved problems included? Is the condition as described?" required></textarea>
+                        </div>
+
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="small text-muted" id="userReviewStatus">Posting as logged-in student</span>
+                            <button type="submit" id="submitReviewBtn" class="btn btn-primary fw-bold">
+                                🌟 Post Review
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Guest Login Prompt Card -->
+            <div id="guestReviewPrompt" class="card shadow-sm border-0 rounded-4 mb-4 p-4 text-center d-none bg-light">
+                <h5 class="fw-bold mb-2">Want to leave a student review?</h5>
+                <p class="text-muted small mb-3">Sign in with your student account to rate this textbook and share insights with your peers.</p>
+                <div>
+                    <a href="/login.html" class="btn btn-primary btn-sm px-4 me-2">Student Sign In</a>
+                    <a href="/register.html" class="btn btn-outline-secondary btn-sm px-4">Register</a>
+                </div>
+            </div>
+
+            <!-- Reviews List Section -->
+            <div class="card shadow border-0 rounded-4">
+                <div class="card-header bg-white py-3 px-4 d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 fw-bold text-dark">💬 Student Reviews & Ratings</h5>
+                    <span class="badge bg-secondary" id="reviewCountBadge">0 Reviews</span>
+                </div>
+                <div class="card-body p-4" id="reviewsContainer">
+                    <div class="text-center text-muted py-4">No reviews yet. Be the first to review!</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Book Selection Directory (when NO ?bookId is specified) -->
+        <div id="selectBookSection" class="d-none">
+            <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+                <div>
+                    <h3 class="fw-bold mb-0">⭐ Select a Book to Review</h3>
+                    <p class="text-muted small mb-0">Browse textbook listings on campus and share your ratings</p>
+                </div>
+                <a href="/books.html" class="btn btn-outline-primary btn-sm">Browse Marketplace</a>
+            </div>
+
+            <div id="booksGrid" class="row g-3">
+                <div class="text-center py-5">
+                    <div class="spinner-border text-primary" role="status"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="text-center mt-4">
+            <a href="/books.html" class="text-decoration-none small text-muted">← Back to Student Marketplace</a>
+        </div>
+    </div>
+
+    <footer>
+        <div class="container text-center">
+            <p class="mb-0">🎓 CampusBookShare — Student-to-Student Textbook Sharing & Marketplace</p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let currentUser = null;
+
+        const params = new URLSearchParams(window.location.search);
+        const bookId = params.get('bookId');
+
+        // Check authentication
+        fetch(API_BASE_URL + '/api/user', { headers: authHeaders() })
+            .then(res => res.json())
+            .then(data => {
+                currentUser = data;
+                const authNav = document.getElementById('authNav');
+                const userInfo = document.getElementById('userInfo');
+
+                if (data.loggedIn) {
+                    const name = data.fullName || 'Student';
+                    const college = data.collegeName ? ` (${data.collegeName})` : '';
+                    userInfo.textContent = `👤 ${name}${college}`;
+                    authNav.innerHTML = '<a class="nav-link" href="#" id="logoutLink">Logout</a>';
+                    document.getElementById('logoutLink').addEventListener('click', function (e) {
+                        e.preventDefault();
+                        logout();
+                    });
+                } else {
+                    authNav.innerHTML = '<a class="nav-link" href="/login.html">Login</a>';
+                }
+
+                if (bookId) {
+                    initSingleBookView();
+                } else {
+                    initDirectoryView();
+                }
+            })
+            .catch(() => {
+                if (bookId) {
+                    initSingleBookView();
+                } else {
+                    initDirectoryView();
+                }
+            });
+
+        // Interactive Rating Radio Listener for user feedback
+        const ratingDescriptions = {
+            '5': '⭐ 5 Stars - Outstanding resource for exams & coursework',
+            '4': '⭐ 4 Stars - Very good textbook with helpful content',
+            '3': '⭐ 3 Stars - Average / standard reference book',
+            '2': '⭐ 2 Stars - Fair condition or difficult explanations',
+            '1': '⭐ 1 Star - Poor quality or outdated syllabus'
+        };
+
+        document.querySelectorAll('input[name="rating"]').forEach(radio => {
+            radio.addEventListener('change', function () {
+                const text = ratingDescriptions[this.value] || '';
+                document.getElementById('ratingText').textContent = text;
+            });
+        });
+
+        function renderStars(rating) {
+            const num = Math.round(rating);
+            let s = '';
+            for (let i = 1; i <= 5; i++) {
+                s += (i <= num) ? '⭐' : '☆';
+            }
+            return s;
+        }
+
+        function initSingleBookView() {
+            document.getElementById('singleBookSection').classList.remove('d-none');
+            document.getElementById('selectBookSection').classList.add('d-none');
+
+            // Load book info
+            fetch(API_BASE_URL + '/books/' + bookId, { headers: authHeaders() })
+                .then(res => res.json())
+                .then(book => {
+                    document.getElementById('bookLoading').classList.add('d-none');
+
+                    if (!book || !book.title) {
+                        document.getElementById('reviewsContainer').innerHTML = '<div class="alert alert-danger">Book not found. <a href="/books.html">Browse books</a></div>';
+                        return;
+                    }
+
+                    document.getElementById('bookHeaderCard').classList.remove('d-none');
+                    document.getElementById('bookTitle').textContent = book.title;
+                    document.getElementById('bookAuthor').textContent = 'by ' + book.author;
+                    document.getElementById('bookDesc').textContent = book.description || 'Listed by student for college coursework.';
+                    document.getElementById('bookDept').textContent = book.department || 'General';
+
+                    const typeBadge = document.getElementById('bookTypeBadge');
+                    if (book.listingType === 'Sale') {
+                        typeBadge.className = 'badge badge-sale';
+                        typeBadge.textContent = `💰 ₹${book.price || 0} (For Sale)`;
+                    } else {
+                        typeBadge.className = 'badge badge-lend';
+                        typeBadge.textContent = '🤝 Free Lending';
+                    }
+
+                    if (book.avgRating) {
+                        document.getElementById('avgRatingHeader').innerHTML = `⭐ ${book.avgRating} <span class="text-muted fs-6">/ 5 (${book.reviewCount} ${book.reviewCount === 1 ? 'review' : 'reviews'})</span>`;
+                    } else {
+                        document.getElementById('avgRatingHeader').innerHTML = `<span class="badge bg-light text-muted border">No reviews yet</span>`;
+                    }
+
+                    document.getElementById('bookCampus').textContent = '🏫 Campus: ' + (book.ownerCollege || book.collegeName);
+                    document.getElementById('bookOwner').textContent = '👤 Listed by: ' + (book.ownerName || 'Student');
+
+                    // Action button
+                    if (book.available) {
+                        const targetUrl = book.listingType === 'Sale' ? `/purchase.html?bookId=${book._id}` : `/borrow.html?bookId=${book._id}`;
+                        const label = book.listingType === 'Sale' ? '🛒 Buy Book' : '📖 Request Lend';
+                        document.getElementById('bookActionBtns').innerHTML = `<a href="${targetUrl}" class="btn btn-sm btn-${book.listingType === 'Sale' ? 'warning' : 'success'} fw-bold">${label}</a>`;
+                    }
+
+                    // Show form or login prompt
+                    if (currentUser && currentUser.loggedIn) {
+                        document.getElementById('reviewFormCard').classList.remove('d-none');
+                    } else {
+                        document.getElementById('guestReviewPrompt').classList.remove('d-none');
+                    }
+
+                    loadReviews();
+                })
+                .catch(() => {
+                    document.getElementById('bookLoading').classList.add('d-none');
+                    document.getElementById('reviewsContainer').innerHTML = '<div class="alert alert-danger">Failed to load book reviews.</div>';
+                });
+
+            // Handle review submission
+            const reviewForm = document.getElementById('reviewForm');
+            reviewForm.addEventListener('submit', function (e) {
+                e.preventDefault();
+
+                const rating = document.querySelector('input[name="rating"]:checked')?.value;
+                const comment = document.getElementById('commentInput').value.trim();
+                const alertBox = document.getElementById('reviewAlertBox');
+                const submitBtn = document.getElementById('submitReviewBtn');
+
+                if (!rating) {
+                    alertBox.innerHTML = '<div class="alert alert-danger py-2">Please select a star rating.</div>';
+                    return;
+                }
+
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Submitting...';
+
+                fetch(API_BASE_URL + '/review/' + bookId, {
+                    method: 'POST',
+                    headers: Object.assign({ 'Content-Type': 'application/json' }, authHeaders()),
+                    body: JSON.stringify({ rating: Number(rating), comment })
+                })
+                    .then(res => res.json())
+                    .then(data => {
+                        submitBtn.disabled = false;
+                        submitBtn.textContent = '🌟 Post Review';
+
+                        if (data.success) {
+                            alertBox.innerHTML = `<div class="alert alert-success py-2">✅ ${data.message || 'Review submitted successfully!'}</div>`;
+                            loadReviews();
+                        } else {
+                            alertBox.innerHTML = `<div class="alert alert-danger py-2">${data.error || 'Failed to submit review.'}</div>`;
+                        }
+                    })
+                    .catch(() => {
+                        submitBtn.disabled = false;
+                        submitBtn.textContent = '🌟 Post Review';
+                        alertBox.innerHTML = '<div class="alert alert-danger py-2">Server connection error. Please try again.</div>';
+                    });
+            });
+        }
+
+        function loadReviews() {
+            const container = document.getElementById('reviewsContainer');
+            const badge = document.getElementById('reviewCountBadge');
+
+            fetch(API_BASE_URL + '/books/' + bookId + '/reviews')
+                .then(res => res.json())
+                .then(reviews => {
+                    if (!reviews || reviews.length === 0) {
+                        container.innerHTML = '<div class="text-center text-muted py-4">No reviews written yet. Be the first student to review this textbook!</div>';
+                        badge.textContent = '0 Reviews';
+                        return;
+                    }
+
+                    badge.textContent = `${reviews.length} ${reviews.length === 1 ? 'Review' : 'Reviews'}`;
+
+                    let html = '<div class="list-group list-group-flush">';
+                    reviews.forEach(r => {
+                        const dateStr = new Date(r.createdAt).toLocaleDateString('en-IN', {
+                            year: 'numeric',
+                            month: 'short',
+                            day: 'numeric'
+                        });
+
+                        const isCurrentUserReview = currentUser && currentUser.loggedIn && currentUser.userId === r.userId;
+                        if (isCurrentUserReview) {
+                            // Pre-fill form if user already reviewed
+                            const radio = document.querySelector(`input[name="rating"][value="${r.rating}"]`);
+                            if (radio) radio.checked = true;
+                            document.getElementById('commentInput').value = r.comment || '';
+                            document.getElementById('submitReviewBtn').textContent = '🔄 Update Review';
+                            document.getElementById('userReviewStatus').innerHTML = '<span class="text-success fw-bold">✓ You reviewed this book</span>';
+                        }
+
+                        html += `
+                            <div class="list-group-item px-0 py-3 ${isCurrentUserReview ? 'bg-light rounded p-3 my-2' : ''}">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <div>
+                                        <strong class="text-dark">${r.reviewerName || 'Student'}</strong>
+                                        <small class="text-muted ms-2">${r.reviewerCollege ? '• ' + r.reviewerCollege : ''}</small>
+                                        ${isCurrentUserReview ? '<span class="badge bg-primary ms-2">Your Review</span>' : ''}
+                                    </div>
+                                    <small class="text-muted">${dateStr}</small>
+                                </div>
+                                <div class="text-warning mb-2">${renderStars(r.rating)} <span class="text-dark small fw-bold ms-1">${r.rating} / 5</span></div>
+                                <p class="mb-0 text-secondary small">${r.comment || 'No text review provided.'}</p>
+                            </div>
+                        `;
+                    });
+                    html += '</div>';
+                    container.innerHTML = html;
+                })
+                .catch(() => {
+                    container.innerHTML = '<div class="alert alert-danger py-2">Failed to load reviews.</div>';
+                });
+        }
+
+        function initDirectoryView() {
+            document.getElementById('singleBookSection').classList.add('d-none');
+            document.getElementById('selectBookSection').classList.remove('d-none');
+
+            const grid = document.getElementById('booksGrid');
+
+            fetch(API_BASE_URL + '/books', { headers: authHeaders() })
+                .then(res => res.json())
+                .then(books => {
+                    grid.innerHTML = '';
+
+                    if (!books || books.length === 0) {
+                        grid.innerHTML = '<div class="col-12"><div class="alert alert-warning text-center">No textbooks found on campus. <a href="/add-book.html">Post a book</a></div></div>';
+                        return;
+                    }
+
+                    books.forEach(b => {
+                        const col = document.createElement('div');
+                        col.className = 'col-md-6 col-lg-4';
+
+                        const ratingStr = b.avgRating 
+                            ? `⭐ ${b.avgRating} / 5 (${b.reviewCount})` 
+                            : 'No reviews yet';
+
+                        const typeBadge = b.listingType === 'Sale'
+                            ? `<span class="badge badge-sale">💰 ₹${b.price}</span>`
+                            : `<span class="badge badge-lend">🤝 Free Lend</span>`;
+
+                        col.innerHTML = `
+                            <div class="card h-100 shadow-sm border-0">
+                                <div class="card-body d-flex flex-column">
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <span class="badge badge-dept">${b.department || 'General'}</span>
+                                        ${typeBadge}
+                                    </div>
+                                    <h5 class="fw-bold mb-1">${b.title}</h5>
+                                    <h6 class="text-muted small mb-3">by ${b.author}</h6>
+                                    
+                                    <div class="mt-auto pt-2 border-top d-flex justify-content-between align-items-center">
+                                        <small class="text-muted">${ratingStr}</small>
+                                        <a href="/review.html?bookId=${b._id}" class="btn btn-outline-primary btn-sm fw-bold">
+                                            ⭐ View / Review
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                        grid.appendChild(col);
+                    });
+                })
+                .catch(() => {
+                    grid.innerHTML = '<div class="col-12"><div class="alert alert-danger text-center">Failed to load books.</div></div>';
+                });
+        }
+    </script>
+</body>
+
+</html>

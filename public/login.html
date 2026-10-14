@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Login - Campus Book Share</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body class="bg-light">
+    <div class="container min-vh-100 d-flex justify-content-center align-items-center">
+        <div class="card shadow-lg border-0 rounded-3 p-4" style="max-width: 420px; width: 100%;">
+            <div class="text-center mb-4">
+                <h2 class="fw-bold text-primary mb-1">🎓 CampusBookShare</h2>
+                <p class="text-muted small">Student P2P Book Selling & Lending</p>
+            </div>
+
+            <div id="alertBox"></div>
+
+            <form id="loginForm" autocomplete="off">
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Student Email Address</label>
+                    <input name="email" type="email" class="form-control" placeholder="e.g. student@college.edu" autocomplete="off" required>
+                </div>
+
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <label class="form-label fw-semibold mb-0">Password</label>
+                        <a href="/forgot-password.html" class="small text-decoration-none">Forgot Password?</a>
+                    </div>
+                    <div class="input-group">
+                        <input name="password" type="password" id="loginPassword" class="form-control" placeholder="Enter password" autocomplete="new-password" required>
+                        <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('loginPassword', this)">
+                            👁️
+                        </button>
+                    </div>
+                </div>
+
+                <div class="d-grid mb-3">
+                    <button type="submit" class="btn btn-primary btn-lg fw-bold">Student Login</button>
+                </div>
+            </form>
+
+            <div class="text-center border-top pt-3">
+                <p class="mb-0 text-muted small">New Student? <a href="/register.html" class="fw-bold text-decoration-none">Register here</a></p>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="config.js"></script>
+    <script src="auth.js"></script>
+    <script>
+        const loginForm = document.getElementById('loginForm');
+
+        function togglePassword(inputId, btn) {
+            const input = document.getElementById(inputId);
+            if (input.type === 'password') {
+                input.type = 'text';
+                btn.textContent = '🙈';
+            } else {
+                input.type = 'password';
+                btn.textContent = '👁️';
+            }
+        }
+
+        window.addEventListener('pageshow', function () {
+            if (loginForm) loginForm.reset();
+        });
+
+        const params = new URLSearchParams(window.location.search);
+        const alertBox = document.getElementById('alertBox');
+
+        if (params.get('registered') === 'true') {
+            alertBox.innerHTML = '<div class="alert alert-success alert-dismissible fade show" role="alert">Registration successful! Please login with your student email.<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>';
+        } else if (params.get('reset') === 'success') {
+            alertBox.innerHTML = '<div class="alert alert-success alert-dismissible fade show" role="alert">Password reset successfully! Login with your new password.<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>';
+        }
+
+        loginForm.addEventListener('submit', function (e) {
+            e.preventDefault();
+            const email = loginForm.email.value;
+            const password = loginForm.password.value;
+
+            fetch(API_BASE_URL + '/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password })
+            })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        localStorage.setItem('token', data.token);
+                        window.location.href = '/home.html';
+                    } else {
+                        alertBox.innerHTML = `<div class="alert alert-danger">${data.error || 'Login failed.'}</div>`;
+                    }
+                })
+                .catch(() => {
+                    alertBox.innerHTML = '<div class="alert alert-danger">Something went wrong. Please try again.</div>';
+                });
+        });
+    </script>
+</body>
+
+</html>
